@@ -14,10 +14,13 @@ func main() {
 			runInteractive()
 			return
 		case "-l":
-			DisplayTasks(InitialModel().Tasks, "")
+			DisplayTasks(InitialModel().Tasks, "", "active")
+			return
+		case "-d":
+			DisplayTasks(InitialModel().Tasks, "", "deleted")
 			return
 		default:
-			fmt.Println("Usage: terminal-todo [-i for interactive|-l for list]")
+			fmt.Println("Usage: godoit [-i interactive | -l list active | -d list deleted]")
 			return
 		}
 	}

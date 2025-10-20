@@ -8,9 +8,13 @@ import (
 
 // Task represents a single TODO item
 type Task struct {
-	Name     string `json:"name"`
-	Priority string `json:"priority"`
-	Done     bool   `json:"done"`
+	Name        string     `json:"name"`
+	Priority    string     `json:"priority"`
+	Done        bool       `json:"done"`
+	Status      string     `json:"status"` // "active", "done", "deleted"
+	CreatedAt   time.Time  `json:"created_at"`
+	CompletedAt *time.Time `json:"completed_at,omitempty"`
+	DeletedAt   *time.Time `json:"deleted_at,omitempty"`
 }
 
 // Model represents the application state for Bubble Tea

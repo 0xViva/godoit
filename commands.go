@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"strings"
+	"time"
 )
 
 // ExecuteCommand processes a command string and returns updated tasks, filter, and message
@@ -15,7 +16,12 @@ func ExecuteCommand(tasks []Task, cmd string, filter string) ([]Task, string, st
 	switch parts[0] {
 	case "add":
 		if len(parts) > 1 {
-			newTask := Task{Name: strings.Join(parts[1:], " "), Priority: "low"}
+			newTask := Task{
+				Name:      strings.Join(parts[1:], " "),
+				Priority:  "low",
+				Status:    "active",
+				CreatedAt: time.Now(),
+			}
 			tasks = append(tasks, newTask)
 			return tasks, filter, "Added task."
 		}
@@ -40,6 +46,14 @@ func ExecuteCommand(tasks []Task, cmd string, filter string) ([]Task, string, st
 			return tasks, parts[1], "Filter applied."
 		}
 		return tasks, "", "Filter cleared."
+	case "edit":
+		if len(parts) > 2 {
+			idx := parseIndex(parts[1])
+			if idx >= 0 && idx < len(tasks) {
+				tasks[idx].Name = strings.Join(parts[2:], " ")
+				return tasks, filter, "Task edited."
+			}
+		}
 	}
 	return tasks, filter, "Unknown command."
 }

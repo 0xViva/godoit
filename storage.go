@@ -4,15 +4,15 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 func getTaskFile() string {
 	home, err := os.UserHomeDir()
 	if err != nil {
-		// Fallback to current directory if home directory can't be determined
-		return ".godoit.json"
+		return "todos.json"
 	}
-	return filepath.Join(home, ".godoit.json")
+	return filepath.Join(home, "todos.json")
 }
 
 // SaveTasks saves the task list to disk
@@ -35,16 +35,31 @@ func LoadTasks() ([]Task, error) {
 	}
 	var tasks []Task
 	err = json.Unmarshal(data, &tasks)
-	return tasks, err
-}
+	if err != nil {
+		return nil, err
+	}
 
-// RemoveDoneTasks filters out completed tasks
-func RemoveDoneTasks(tasks []Task) []Task {
-	var remaining []Task
-	for _, t := range tasks {
-		if !t.Done {
-			remaining = append(remaining, t)
+	// Migrate old tasks to new format
+	for i := range tasks {
+		if tasks[i].Status == "" {
+			if tasks[i].Done {
+				tasks[i].Status = "done"
+			} else {
+				tasks[i].Status = "active"
+			}
+		}
+		// Set CreatedAt if missing (backward compatibility)
+		if tasks[i].CreatedAt.IsZero() {
+			tasks[i].CreatedAt = time.Now()
 		}
 	}
-	return remaining
+
+	return tasks, nil
+}
+
+// RemoveDoneTasks now keeps all tasks (for backward compatibility)
+// Tasks are marked with status instead of being removed
+func RemoveDoneTasks(tasks []Task) []Task {
+	// Keep all tasks - the status field tracks active/done/deleted
+	return tasks
 }
