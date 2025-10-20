@@ -3,9 +3,17 @@ package main
 import (
 	"encoding/json"
 	"os"
+	"path/filepath"
 )
 
-const TaskFile = "$HOME/.godoit.json"
+func getTaskFile() string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		// Fallback to current directory if home directory can't be determined
+		return ".godoit.json"
+	}
+	return filepath.Join(home, ".godoit.json")
+}
 
 // SaveTasks saves the task list to disk
 func SaveTasks(tasks []Task) error {
@@ -13,12 +21,12 @@ func SaveTasks(tasks []Task) error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(TaskFile, data, 0644)
+	return os.WriteFile(getTaskFile(), data, 0644)
 }
 
 // LoadTasks loads the task list from disk
 func LoadTasks() ([]Task, error) {
-	data, err := os.ReadFile(TaskFile)
+	data, err := os.ReadFile(getTaskFile())
 	if err != nil {
 		if os.IsNotExist(err) {
 			return []Task{}, nil
