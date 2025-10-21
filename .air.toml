@@ -1,0 +1,5 @@
+[build]
+  bin = "/usr/bin/make"
+  cmd = "go build -o $HOME/go/bin/godoit"
+  include_ext = ["go"]
+  delay = 0

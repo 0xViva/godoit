@@ -1,0 +1,14 @@
+# https://taskfile.dev
+
+version: '3'
+
+tasks:
+  dev:
+    cmds:
+      - air
+    silent: true
+
+  remove:
+    cmds:
+      - rm $HOME/todos.json
+    silent: true
