@@ -31,8 +31,5 @@ func main() {
 
 func runInteractive() {
 	p := tea.NewProgram(InitialModel())
-	if err := p.Start(); err != nil {
-		fmt.Printf("Error running program: %v\n", err)
-		os.Exit(1)
-	}
+	p.Run()
 }

@@ -6,7 +6,6 @@ import (
 	"time"
 )
 
-// ExecuteCommand processes a command string and returns updated tasks, filter, and message
 func ExecuteCommand(tasks []Task, cmd string, filter string) ([]Task, string, string) {
 	parts := strings.Fields(cmd)
 	if len(parts) == 0 {
@@ -58,7 +57,6 @@ func ExecuteCommand(tasks []Task, cmd string, filter string) ([]Task, string, st
 	return tasks, filter, "Unknown command."
 }
 
-// parseIndex converts a 1-indexed string to 0-indexed int
 func parseIndex(s string) int {
 	var idx int
 	_, err := fmt.Sscanf(s, "%d", &idx)

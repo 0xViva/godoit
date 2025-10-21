@@ -15,7 +15,6 @@ func getTaskFile() string {
 	return filepath.Join(home, "todos.json")
 }
 
-// SaveTasks saves the task list to disk
 func SaveTasks(tasks []Task) error {
 	data, err := json.MarshalIndent(tasks, "", "  ")
 	if err != nil {
@@ -24,7 +23,6 @@ func SaveTasks(tasks []Task) error {
 	return os.WriteFile(getTaskFile(), data, 0644)
 }
 
-// LoadTasks loads the task list from disk
 func LoadTasks() ([]Task, error) {
 	data, err := os.ReadFile(getTaskFile())
 	if err != nil {
@@ -39,7 +37,6 @@ func LoadTasks() ([]Task, error) {
 		return nil, err
 	}
 
-	// Migrate old tasks to new format
 	for i := range tasks {
 		if tasks[i].Status == "" {
 			if tasks[i].Done {
@@ -57,9 +54,6 @@ func LoadTasks() ([]Task, error) {
 	return tasks, nil
 }
 
-// RemoveDoneTasks now keeps all tasks (for backward compatibility)
-// Tasks are marked with status instead of being removed
 func RemoveDoneTasks(tasks []Task) []Task {
-	// Keep all tasks - the status field tracks active/done/deleted
 	return tasks
 }
