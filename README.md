@@ -12,6 +12,6 @@ A simple **terminal-based TODO TUI** written in Go.
 - 💾 **Persistent storage**: Saves tasks to:`$XDG_DATA_HOME/godoit/todos.json` or `/home/<user>/.local/share/godoit/todos.json`
 
 
-##Install
+## Install
 
 Instructions for setup being added later.
