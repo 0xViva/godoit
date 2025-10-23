@@ -1,10 +1,17 @@
-#📝GoDoIt
+# 📝 GoDoIt
 
-A simple #TODO TUI for your terminal.
+A simple **terminal-based TODO TUI** written in Go.
 
-✅ Add new tasks
-✏️ Edit existing tasks inline
-❌ Delete tasks
-✔️ Mark tasks as done/undone
-🔤 Navigate tasks with j/k or arrow keys
-💾 Saves tasks to `$XDG_DATA_HOME/todos.json`, `/home/user/.local/share`
+## Features
+
+- ✅ **Add** new tasks  
+- ✏️ **Edit** existing tasks inline  
+- ❌ **Delete** tasks  
+- ✔️ **Mark** tasks as done/undone  
+- 🔤 **Navigate** tasks with `j/k` or arrow keys  
+- 💾 **Persistent storage**: Saves tasks to:`$XDG_DATA_HOME/godoit/todos.json` or `/home/<user>/.local/share/godoit/todos.json`
+
+
+##Install
+
+Instructions for setup being added later.
