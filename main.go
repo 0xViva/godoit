@@ -6,6 +6,7 @@ import (
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"log"
 	"os"
 	"strings"
 )
@@ -79,10 +80,12 @@ func textToTodos(text string) []Todo {
 }
 
 func initialModel() model {
+	log.Println("init model..")
 	todos := loadTodos()
 	ta := textarea.New()
-	ta.SetValue(todosToText(todos))
 	ta.Focus()
+	ta.ShowLineNumbers = true
+	ta.SetValue(todosToText(todos))
 	return model{textarea: ta, todos: todos, Mode: Normal}
 }
 
@@ -118,7 +121,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "enter":
 			if m.Mode == Insert || m.Mode == Edit {
 				todos := textToTodos(m.textarea.Value())
-
 				// Remove empty tasks
 				nonEmptyTodos := []Todo{}
 				for _, t := range todos {
@@ -129,16 +131,20 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 				m.todos = nonEmptyTodos
 				saveTodos(m.todos)
+				// refresh textarea content
 				m.textarea.SetValue(todosToText(m.todos))
+				m.textarea.Line()
 				m.Mode = Normal
 			}
 
 		// Navigation in Normal mode
 		case "k", "up":
+			m.textarea.Focus()
 			if m.Mode == Normal {
 				m.textarea.CursorUp()
 			}
 		case "j", "down":
+			m.textarea.Focus()
 			if m.Mode == Normal {
 				m.textarea.CursorDown()
 			}
@@ -175,8 +181,9 @@ func (m model) View() string {
 	layout := lipgloss.JoinVertical(
 		lipgloss.Left,
 		header,
-		modeBar,
 		m.textarea.View(),
+
+		modeBar,
 		footer,
 	)
 
