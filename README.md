@@ -1,6 +1,6 @@
 # 📝 GoDoIt
 
-A simple **terminal-based TODO TUI** written in Go.
+A simple **#TODO** TUI written in Go using Bubbletea.
 
 ## Features
 
