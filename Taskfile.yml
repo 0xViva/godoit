@@ -10,5 +10,5 @@ tasks:
 
   remove:
     cmds:
-      - rm $HOME/todos.json
+      - rm $HOME/.local/share/godoit/todos.json
     silent: true
