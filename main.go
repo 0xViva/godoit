@@ -89,37 +89,59 @@ func initialModel() model {
 func (m model) Init() tea.Cmd { return nil }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
+
 	switch msg := msg.(type) {
 
 	case tea.KeyMsg:
 		switch msg.String() {
-
 		case "ctrl+c", "q":
 			return m, tea.Quit
 
 		case "a":
-			m.Mode = Insert
-			m.todos = append(m.todos, Todo{Text: "New task", Done: false})
-			m.textarea.SetValue(todosToText(m.todos))
-			m.textarea.CursorEnd()
-			m.textarea.Focus()
+			if m.Mode == Normal {
+				m.Mode = Insert
+				m.todos = append(m.todos, Todo{Text: "", Done: false})
+				m.textarea.SetValue(todosToText(m.todos))
+				m.textarea.CursorEnd()
+				m.textarea.Focus()
+				return m, nil
+			}
 
 		case "e":
-			m.Mode = Edit
-			m.textarea.Focus()
+			if m.Mode == Normal && len(m.todos) > 0 {
+				m.Mode = Edit
+				m.textarea.Focus()
+				return m, nil
+			}
 
 		case "enter":
 			if m.Mode == Insert || m.Mode == Edit {
-				m.todos = textToTodos(m.textarea.Value())
+				todos := textToTodos(m.textarea.Value())
+
+				// Remove empty tasks
+				nonEmptyTodos := []Todo{}
+				for _, t := range todos {
+					if strings.TrimSpace(t.Text) != "" {
+						nonEmptyTodos = append(nonEmptyTodos, t)
+					}
+				}
+
+				m.todos = nonEmptyTodos
 				saveTodos(m.todos)
+				m.textarea.SetValue(todosToText(m.todos))
 				m.Mode = Normal
 			}
 
+		// Navigation in Normal mode
 		case "k", "up":
-			m.textarea.CursorUp()
-
+			if m.Mode == Normal {
+				m.textarea.CursorUp()
+			}
 		case "j", "down":
-			m.textarea.CursorDown()
+			if m.Mode == Normal {
+				m.textarea.CursorDown()
+			}
 		}
 
 	case tea.WindowSizeMsg:
@@ -127,7 +149,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.textarea.SetHeight(15)
 	}
 
-	var cmd tea.Cmd
+	// Only let textarea process key events in Insert/Edit mode
 	if m.Mode == Insert || m.Mode == Edit {
 		m.textarea, cmd = m.textarea.Update(msg)
 	}
