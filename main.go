@@ -5,6 +5,7 @@ import (
 )
 
 func main() {
+
 	p := tea.NewProgram(initialModel(), tea.WithAltScreen())
 	p.Run()
 }
