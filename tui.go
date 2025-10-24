@@ -57,13 +57,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.mode = Insert
 				m.input = ""
 				m.cursorVisible = true
-				cmd = blinkCmd() // start blinking
+				cmd = blinkCmd()
 			case key.Matches(msg, keys.Edit):
 				if len(m.todos) > 0 {
 					m.mode = Edit
 					m.input = m.todos[m.cursor].Text
 					m.cursorVisible = true
-					cmd = blinkCmd() // start blinking
+					cmd = blinkCmd()
 				}
 			case key.Matches(msg, keys.Delete):
 				if len(m.todos) > 0 {
@@ -75,7 +75,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			case key.Matches(msg, keys.Toggle):
 				if len(m.todos) > 0 {
-					m.todos[m.cursor].Done = !m.todos[m.cursor].Done
+					now := time.Now()
+					if m.todos[m.cursor].Done {
+						m.todos[m.cursor].Done = false
+						m.todos[m.cursor].CompletedAt = nil
+					} else {
+						m.todos[m.cursor].Done = true
+						m.todos[m.cursor].CompletedAt = &now
+					}
 					saveTodos(m.todos)
 				}
 			}
@@ -84,16 +91,24 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			switch {
 			case key.Matches(msg, keys.Enter):
 				if m.mode == Insert {
-					m.todos = append(m.todos, Todo{Text: strings.TrimSpace(m.input)})
+					maxID := 0
+					for _, t := range m.todos {
+						if t.ID > maxID {
+							maxID = t.ID
+						}
+					}
+					newID := maxID + 1
+
+					m.todos = append(m.todos, Todo{
+						ID:        newID,
+						Text:      strings.TrimSpace(m.input),
+						CreatedAt: time.Now(),
+					})
 					m.cursor = len(m.todos) - 1
 				} else if m.mode == Edit && len(m.todos) > 0 {
 					m.todos[m.cursor].Text = strings.TrimSpace(m.input)
 				}
 				saveTodos(m.todos)
-				m.mode = Normal
-				m.input = ""
-				m.cursorVisible = false
-			case key.Matches(msg, keys.Esc):
 				m.mode = Normal
 				m.input = ""
 				m.cursorVisible = false
@@ -103,7 +118,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			default:
 				if len(msg.String()) == 1 {
-					m.input += msg.String()
+					if len([]rune(m.input)) < 50 {
+						m.input += msg.String()
+					}
 				}
 			}
 		}
@@ -141,7 +158,7 @@ func (m model) View() string {
 		if m.cursorVisible {
 			cursorChar = "_"
 		}
-		inputLine := fmt.Sprintf(" ➤[ ] %s%s", m.input, cursorChar)
+		inputLine := fmt.Sprintf("➤add[ ] %s%s", m.input, cursorChar)
 		body += "\n" + lipgloss.NewStyle().Bold(true).Italic(true).Render(inputLine)
 	}
 

@@ -4,48 +4,122 @@ import (
 	"fmt"
 	"github.com/charmbracelet/lipgloss"
 	"strings"
+	"time"
 )
 
 type Todo struct {
-	Text string `json:"text"`
-	Done bool   `json:"done"`
+	ID          int        `json:"id"`
+	Text        string     `json:"text"`
+	Done        bool       `json:"done"`
+	CreatedAt   time.Time  `json:"created_at"`
+	CompletedAt *time.Time `json:"completed_at,omitempty"`
 }
 
 func (m model) todosToString() string {
-	lines := []string{}
-	for i, t := range m.todos {
-		check := "[ ]"
-		if t.Done {
-			check = "[✔]"
+	var b strings.Builder
+
+	maxLen := 0
+	maxID := 0
+	for _, t := range m.todos {
+		l := len([]rune(t.Text))
+		if l > maxLen {
+			maxLen = l
 		}
-
-		cursor := "  "
-		if m.mode == Edit && i == m.cursor {
-			cursor = " ➤"
-		} else if m.mode == Normal && i == m.cursor {
-			cursor = " →"
+		if t.ID > maxID {
+			maxID = t.ID
 		}
-
-		text := t.Text
-		if m.mode == Edit && i == m.cursor {
-			text = lipgloss.NewStyle().Italic(true).Render(m.input)
-			if m.cursorVisible {
-				text += "_"
-			}
-		}
-
-		// strike through only the text
-		if t.Done && !(m.mode == Edit && i == m.cursor) {
-			text = lipgloss.NewStyle().Strikethrough(true).Render(text)
-		}
-
-		line := fmt.Sprintf("%s%s %s", cursor, check, text)
-
-		if i == m.cursor && (m.mode == Normal || m.mode == Edit) {
-			line = lipgloss.NewStyle().Bold(true).Render(line)
-		}
-
-		lines = append(lines, line)
 	}
-	return strings.Join(lines, "\n")
+	padding := 3
+	width := maxLen + padding
+
+	ageStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("241")).
+		Faint(true)
+
+	idStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("241")).
+		Faint(true)
+
+	lineHighlight := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("15"))
+
+	cursorIDStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("15")).
+		Bold(true)
+
+	for i, todo := range m.todos {
+		// Cursor indicator
+		cursor := " "
+		if m.cursor == i && (m.mode == Normal || m.mode == Edit) {
+			cursor = "➤"
+		}
+
+		// Checkbox
+		check := "[ ]"
+		if todo.Done {
+			check = "[x]"
+		}
+
+		// Text styling
+		text := todo.Text
+		textStyle := lipgloss.NewStyle()
+
+		// Apply strikethrough if done
+		if todo.Done {
+			textStyle = textStyle.Strikethrough(true)
+		}
+
+		// Bold if cursor on this line (Normal or Edit)
+		if m.cursor == i && (m.mode == Normal || m.mode == Edit) {
+			textStyle = textStyle.Bold(true)
+		}
+
+		// In Edit mode, replace text with input + cursor
+		if m.mode == Edit && i == m.cursor {
+			cursorChar := " "
+			if m.cursorVisible {
+				cursorChar = "_"
+			}
+			text = m.input + cursorChar
+			// Keep bold in edit mode
+			textStyle = textStyle.Bold(true)
+		}
+
+		text = textStyle.Render(text)
+
+		// Age
+		age := FormatTaskAge(todo.CreatedAt)
+		fadedAge := ageStyle.Render(age)
+
+		// ID styling
+		idStr := fmt.Sprintf("%*d", len(fmt.Sprintf("%d", maxID)), todo.ID)
+		if m.cursor == i {
+			idStr = cursorIDStyle.Render(idStr)
+		} else {
+			idStr = idStyle.Render(idStr)
+		}
+
+		// Compute padding
+		textVisibleWidth := lipgloss.Width(text)
+		textPad := width - textVisibleWidth
+		if textPad < 0 {
+			textPad = 0
+		}
+
+		var line string
+		if m.cursor == i && (m.mode == Normal || m.mode == Edit) {
+			// Keep the conditional spacing for cursor+ID
+			line = fmt.Sprintf(" %s%s%s %s%s", idStr, cursor, check, text, strings.Repeat(" ", textPad)+fadedAge)
+		} else {
+			line = fmt.Sprintf("%s %s%s %s%s", idStr, cursor, check, text, strings.Repeat(" ", textPad)+fadedAge)
+		}
+
+		if m.cursor == i {
+			line = lineHighlight.Render(line)
+		}
+
+		b.WriteString(line + "\n")
+	}
+
+	return b.String()
 }

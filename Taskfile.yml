@@ -10,5 +10,6 @@ tasks:
 
   remove:
     cmds:
-      - rm $HOME/.local/share/godoit/todos.json
+      - rm $HOME/go/bin/godoit
+      - rm $XDG_DATA_HOME/godoit/todos.json
     silent: true
