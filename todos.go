@@ -48,50 +48,41 @@ func (m model) todosToString() string {
 		Bold(true)
 
 	for i, todo := range m.todos {
-		// Cursor indicator
 		cursor := " "
 		if m.cursor == i && (m.mode == Normal || m.mode == Edit) {
 			cursor = "➤"
 		}
 
-		// Checkbox
 		check := "[ ]"
 		if todo.Done {
 			check = "[x]"
 		}
 
-		// Text styling
 		text := todo.Text
 		textStyle := lipgloss.NewStyle()
 
-		// Apply strikethrough if done
 		if todo.Done {
 			textStyle = textStyle.Strikethrough(true)
 		}
 
-		// Bold if cursor on this line (Normal or Edit)
 		if m.cursor == i && (m.mode == Normal || m.mode == Edit) {
 			textStyle = textStyle.Bold(true)
 		}
 
-		// In Edit mode, replace text with input + cursor
 		if m.mode == Edit && i == m.cursor {
 			cursorChar := " "
 			if m.cursorVisible {
 				cursorChar = "_"
 			}
 			text = m.input + cursorChar
-			// Keep bold in edit mode
 			textStyle = textStyle.Bold(true)
 		}
 
 		text = textStyle.Render(text)
 
-		// Age
 		age := FormatTaskAge(todo.CreatedAt)
 		fadedAge := ageStyle.Render(age)
 
-		// ID styling
 		idStr := fmt.Sprintf("%*d", len(fmt.Sprintf("%d", maxID)), todo.ID)
 		if m.cursor == i {
 			idStr = cursorIDStyle.Render(idStr)
@@ -99,7 +90,6 @@ func (m model) todosToString() string {
 			idStr = idStyle.Render(idStr)
 		}
 
-		// Compute padding
 		textVisibleWidth := lipgloss.Width(text)
 		textPad := width - textVisibleWidth
 		if textPad < 0 {
@@ -108,7 +98,6 @@ func (m model) todosToString() string {
 
 		var line string
 		if m.cursor == i && (m.mode == Normal || m.mode == Edit) {
-			// Keep the conditional spacing for cursor+ID
 			line = fmt.Sprintf(" %s%s%s %s%s", idStr, cursor, check, text, strings.Repeat(" ", textPad)+fadedAge)
 		} else {
 			line = fmt.Sprintf("%s %s%s %s%s", idStr, cursor, check, text, strings.Repeat(" ", textPad)+fadedAge)
