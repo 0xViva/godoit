@@ -163,17 +163,13 @@ func (m model) View() string {
 		cursor := "➤"
 		check := "[ ]"
 
-		// Compute next ID
-		nextID := 1
 		maxID := 0
 		for _, t := range m.todos {
 			if t.ID > maxID {
 				maxID = t.ID
 			}
-			if t.ID >= nextID {
-				nextID = t.ID + 1
-			}
 		}
+		nextID := maxID + 1
 
 		idStr := fmt.Sprintf("%*d", len(fmt.Sprintf("%d", maxID)), nextID)
 		inputIDStyle := lipgloss.NewStyle().
@@ -181,7 +177,7 @@ func (m model) View() string {
 			Bold(true)
 		idStr = inputIDStyle.Render(idStr)
 
-		inputLine := fmt.Sprintf("%s %s%s %s%s", idStr, cursor, check, m.input, cursorChar)
+		inputLine := fmt.Sprintf(" %s%s%s %s%s", idStr, cursor, check, m.input, cursorChar)
 
 		body += "\n" + lipgloss.NewStyle().
 			Bold(true).

@@ -15,6 +15,58 @@ type Todo struct {
 	CompletedAt *time.Time `json:"completed_at,omitempty"`
 }
 
+const strikethroughOn = "\033[9m"
+const strikethroughOff = "\033[0m"
+
+func (m model) todosToStringPlain() string {
+	var b strings.Builder
+
+	// Find max lengths for padding
+	maxID := 0
+	maxTextLen := 0
+	for _, t := range m.todos {
+		if t.ID > maxID {
+			maxID = t.ID
+		}
+		if l := len([]rune(t.Text)); l > maxTextLen {
+			maxTextLen = l
+		}
+	}
+
+	padding := 3
+	width := maxTextLen + padding
+
+	for _, todo := range m.todos {
+		// ID
+		idStr := fmt.Sprintf("%*d", len(fmt.Sprintf("%d", maxID)), todo.ID)
+
+		// Checkbox
+		check := "[ ]"
+		if todo.Done {
+			check = "[x]"
+		}
+
+		// Text
+		text := todo.Text
+		if todo.Done {
+			text = strikethroughOn + text + strikethroughOff
+		}
+
+		textPad := width - len([]rune(todo.Text)) // pad using original text length
+		if textPad < 0 {
+			textPad = 0
+		}
+
+		// Age (optional)
+		age := FormatTaskAge(todo.CreatedAt)
+
+		line := fmt.Sprintf("%s %s %s%s", idStr, check, text, strings.Repeat(" ", textPad)+age)
+		b.WriteString(line + "\n")
+	}
+
+	return b.String()
+}
+
 func (m model) todosToString() string {
 	var b strings.Builder
 

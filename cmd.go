@@ -21,7 +21,7 @@ func RunCmd() bool {
 			return true
 		}
 
-		fmt.Println(m.todosToString())
+		fmt.Println(m.todosToStringPlain())
 		return true
 	default:
 		return false
