@@ -84,7 +84,7 @@ func (m model) todosToString() string {
 		fadedAge := ageStyle.Render(age)
 
 		idStr := fmt.Sprintf("%*d", len(fmt.Sprintf("%d", maxID)), todo.ID)
-		if m.cursor == i {
+		if m.cursor == i && (m.mode == Normal || m.mode == Edit) {
 			idStr = cursorIDStyle.Render(idStr)
 		} else {
 			idStr = idStyle.Render(idStr)

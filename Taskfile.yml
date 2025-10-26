@@ -29,5 +29,5 @@ tasks:
 
   remove:
     cmds:
-      - rm $(which godoit)
-      - rm $XDG_DATA_HOME/godoit/todos.json
+      - rm "$(which godoit 2>/dev/null)" 2>/dev/null || true
+      - rm -f "${XDG_DATA_HOME:-$HOME/.local/share}/godoit/todos.json"
