@@ -158,7 +158,7 @@ func (m model) View() string {
 		if m.cursorVisible {
 			cursorChar = "_"
 		}
-		inputLine := fmt.Sprintf("➤add[ ] %s%s", m.input, cursorChar)
+		inputLine := fmt.Sprintf("→ %s%s", m.input, cursorChar)
 		body += "\n" + lipgloss.NewStyle().Bold(true).Italic(true).Render(inputLine)
 	}
 

@@ -25,6 +25,10 @@ func init() {
 
 	todosFile = filepath.Join(dataDir, "todos.json")
 }
+func saveTodos(todos []Todo) {
+	data, _ := json.MarshalIndent(todos, "", "  ")
+	_ = os.WriteFile(todosFile, data, 0644)
+}
 
 func loadTodos() []Todo {
 	data, err := os.ReadFile(todosFile)
@@ -34,9 +38,4 @@ func loadTodos() []Todo {
 	var todos []Todo
 	_ = json.Unmarshal(data, &todos)
 	return todos
-}
-
-func saveTodos(todos []Todo) {
-	data, _ := json.MarshalIndent(todos, "", "  ")
-	_ = os.WriteFile(todosFile, data, 0644)
 }
