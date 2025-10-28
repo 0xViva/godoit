@@ -6,7 +6,7 @@ import (
 
 type model struct {
 	todos         []Todo
-	cursor        int
+	cursorLine    int
 	mode          Mode
 	input         string
 	help          help.Model
@@ -16,10 +16,10 @@ type model struct {
 func initialModel() model {
 	todos := loadTodos()
 	return model{
-		todos:  todos,
-		cursor: 0,
-		mode:   Normal,
-		input:  "",
-		help:   help.New(),
+		todos:      todos,
+		cursorLine: 0,
+		mode:       Normal,
+		input:      "",
+		help:       help.New(),
 	}
 }

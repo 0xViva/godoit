@@ -15,13 +15,9 @@ type Todo struct {
 	CompletedAt *time.Time `json:"completed_at,omitempty"`
 }
 
-const strikethroughOn = "\033[9m"
-const strikethroughOff = "\033[0m"
-
 func (m model) todosToStringPlain() string {
 	var b strings.Builder
 
-	// Find max lengths for padding
 	maxID := 0
 	maxTextLen := 0
 	for _, t := range m.todos {
@@ -32,35 +28,27 @@ func (m model) todosToStringPlain() string {
 			maxTextLen = l
 		}
 	}
-
-	padding := 3
-	width := maxTextLen + padding
+	width := maxTextLen + paddingAfterText
 
 	for _, todo := range m.todos {
 		// ID
 		idStr := fmt.Sprintf("%*d", len(fmt.Sprintf("%d", maxID)), todo.ID)
 
-		// Checkbox
-		check := "[ ]"
+		checkBox := checkBox
 		if todo.Done {
-			check = "[x]"
+			checkBox = fmt.Sprintf("[%s]", checkMark)
 		}
 
-		// Text
 		text := todo.Text
 		if todo.Done {
 			text = strikethroughOn + text + strikethroughOff
 		}
 
-		textPad := width - len([]rune(todo.Text)) // pad using original text length
-		if textPad < 0 {
-			textPad = 0
-		}
+		textPad := max(0, width-len([]rune(todo.Text)))
 
-		// Age (optional)
 		age := FormatTaskAge(todo.CreatedAt)
 
-		line := fmt.Sprintf("%s %s %s%s", idStr, check, text, strings.Repeat(" ", textPad)+age)
+		line := fmt.Sprintf("%s %s %s%s", idStr, checkBox, text, strings.Repeat(" ", textPad)+age)
 		b.WriteString(line + "\n")
 	}
 
@@ -81,33 +69,18 @@ func (m model) todosToString() string {
 			maxID = t.ID
 		}
 	}
-	padding := 3
-	width := maxLen + padding
-
-	ageStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("241")).
-		Faint(true)
-
-	idStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("241")).
-		Faint(true)
-
-	lineHighlight := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("15"))
-
-	cursorIDStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("15")).
-		Bold(true)
+	width := maxLen + paddingAfterText
 
 	for i, todo := range m.todos {
 		cursor := " "
-		if m.cursor == i && (m.mode == Normal || m.mode == Edit) {
-			cursor = "➤"
+		if m.cursorLine == i && (m.mode == Normal || m.mode == Edit) {
+			cursor = taskCursor
 		}
 
-		check := "[ ]"
+		checkbox := checkBox
 		if todo.Done {
-			check = "[x]"
+
+			checkbox = fmt.Sprintf("[%s]", checkMark)
 		}
 
 		text := todo.Text
@@ -117,16 +90,16 @@ func (m model) todosToString() string {
 			textStyle = textStyle.Strikethrough(true)
 		}
 
-		if m.cursor == i && (m.mode == Normal || m.mode == Edit) {
+		if m.cursorLine == i && (m.mode == Normal || m.mode == Edit) {
 			textStyle = textStyle.Bold(true)
 		}
 
-		if m.mode == Edit && i == m.cursor {
-			cursorChar := " "
+		if m.mode == Edit && i == m.cursorLine {
+			cursor = " "
 			if m.cursorVisible {
-				cursorChar = "_"
+				cursor = inputCursor
 			}
-			text = m.input + cursorChar
+			text = m.input + inputCursor
 			textStyle = textStyle.Bold(true)
 		}
 
@@ -136,26 +109,24 @@ func (m model) todosToString() string {
 		fadedAge := ageStyle.Render(age)
 
 		idStr := fmt.Sprintf("%*d", len(fmt.Sprintf("%d", maxID)), todo.ID)
-		if m.cursor == i && (m.mode == Normal || m.mode == Edit) {
+		if m.cursorLine == i && (m.mode == Normal || m.mode == Edit) {
 			idStr = cursorIDStyle.Render(idStr)
 		} else {
 			idStr = idStyle.Render(idStr)
 		}
 
 		textVisibleWidth := lipgloss.Width(text)
-		textPad := width - textVisibleWidth
-		if textPad < 0 {
-			textPad = 0
-		}
+
+		textPad := max(0, width-textVisibleWidth)
 
 		var line string
-		if m.cursor == i && (m.mode == Normal || m.mode == Edit) {
-			line = fmt.Sprintf(" %s%s%s %s%s", idStr, cursor, check, text, strings.Repeat(" ", textPad)+fadedAge)
+		if m.cursorLine == i && (m.mode == Normal || m.mode == Edit) {
+			line = fmt.Sprintf(" %s%s%s %s%s", idStr, cursor, checkbox, text, strings.Repeat(" ", textPad)+fadedAge)
 		} else {
-			line = fmt.Sprintf("%s %s%s %s%s", idStr, cursor, check, text, strings.Repeat(" ", textPad)+fadedAge)
+			line = fmt.Sprintf("%s %s%s %s%s", idStr, cursor, checkbox, text, strings.Repeat(" ", textPad)+fadedAge)
 		}
 
-		if m.cursor == i {
+		if m.cursorLine == i {
 			line = lineHighlight.Render(line)
 		}
 

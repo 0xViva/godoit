@@ -46,12 +46,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case Normal:
 			switch {
 			case key.Matches(msg, keys.Down):
-				if m.cursor < len(m.todos)-1 {
-					m.cursor++
+				if m.cursorLine < len(m.todos)-1 {
+					m.cursorLine++
 				}
 			case key.Matches(msg, keys.Up):
-				if m.cursor > 0 {
-					m.cursor--
+				if m.cursorLine > 0 {
+					m.cursorLine--
 				}
 			case key.Matches(msg, keys.Add):
 				m.mode = Insert
@@ -61,27 +61,27 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case key.Matches(msg, keys.Edit):
 				if len(m.todos) > 0 {
 					m.mode = Edit
-					m.input = m.todos[m.cursor].Text
+					m.input = m.todos[m.cursorLine].Text
 					m.cursorVisible = true
 					cmd = blinkCmd()
 				}
 			case key.Matches(msg, keys.Delete):
 				if len(m.todos) > 0 {
-					m.todos = append(m.todos[:m.cursor], m.todos[m.cursor+1:]...)
-					if m.cursor >= len(m.todos) && m.cursor > 0 {
-						m.cursor--
+					m.todos = append(m.todos[:m.cursorLine], m.todos[m.cursorLine+1:]...)
+					if m.cursorLine >= len(m.todos) && m.cursorLine > 0 {
+						m.cursorLine--
 					}
 					saveTodos(m.todos)
 				}
 			case key.Matches(msg, keys.Toggle):
 				if len(m.todos) > 0 {
 					now := time.Now()
-					if m.todos[m.cursor].Done {
-						m.todos[m.cursor].Done = false
-						m.todos[m.cursor].CompletedAt = nil
+					if m.todos[m.cursorLine].Done {
+						m.todos[m.cursorLine].Done = false
+						m.todos[m.cursorLine].CompletedAt = nil
 					} else {
-						m.todos[m.cursor].Done = true
-						m.todos[m.cursor].CompletedAt = &now
+						m.todos[m.cursorLine].Done = true
+						m.todos[m.cursorLine].CompletedAt = &now
 					}
 					saveTodos(m.todos)
 				}
@@ -104,9 +104,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						Text:      strings.TrimSpace(m.input),
 						CreatedAt: time.Now(),
 					})
-					m.cursor = len(m.todos) - 1
+					m.cursorLine = len(m.todos) - 1
 				} else if m.mode == Edit && len(m.todos) > 0 {
-					m.todos[m.cursor].Text = strings.TrimSpace(m.input)
+					m.todos[m.cursorLine].Text = strings.TrimSpace(m.input)
 				}
 				saveTodos(m.todos)
 				m.mode = Normal
@@ -150,18 +150,13 @@ func (m model) View() string {
 		modeText = "Edit"
 	}
 
-	header := lipgloss.NewStyle().Bold(true).Render("📝 GoDoIt")
-
 	body := strings.TrimRight(m.todosToString(), "\n")
 
 	if m.mode == Insert {
 		cursorChar := " "
 		if m.cursorVisible {
-			cursorChar = "_"
+			cursorChar = inputCursor
 		}
-
-		cursor := "➤"
-		check := "[ ]"
 
 		maxID := 0
 		for _, t := range m.todos {
@@ -172,24 +167,17 @@ func (m model) View() string {
 		nextID := maxID + 1
 
 		idStr := fmt.Sprintf("%*d", len(fmt.Sprintf("%d", maxID)), nextID)
-		inputIDStyle := lipgloss.NewStyle().
-			Foreground(lipgloss.Color("15")).
-			Bold(true)
 		idStr = inputIDStyle.Render(idStr)
 
-		inputLine := fmt.Sprintf(" %s%s%s %s%s", idStr, cursor, check, m.input, cursorChar)
+		inputLine := fmt.Sprintf(" %s%s%s %s%s", idStr, taskCursor, checkBox, m.input, cursorChar)
 
-		body += "\n" + lipgloss.NewStyle().
-			Bold(true).
-			Italic(true).
+		body += "\n" + inputStyle.
 			Render(inputLine)
 	}
 
 	var help = m.help.View(keys)
 
-	modeBar := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("205")).
-		Render(fmt.Sprintf("-- %s --", modeText))
+	modeBar := modeBarStyle.Render(fmt.Sprintf("-- %s --", modeText))
 
 	if m.mode == Insert || m.mode == Edit {
 		return lipgloss.JoinVertical(
